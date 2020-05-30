@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 
 	"github.com/landistas/enterprise-go-examples/pkg/entities"
 	"github.com/landistas/enterprise-go-examples/pkg/usecases"
@@ -24,8 +25,15 @@ func (adapter *ProductStorageAdapter) Add(ctx context.Context, product entities.
 }
 
 func (adapter ProductStorageAdapter) Get(ctx context.Context, productID string) (*entities.Product, error) {
-	// TODO implement
-	return nil, nil
+	product, err := adapter.infraStorage.Read(ctx, productID)
+	if err != nil {
+		return nil, err
+	}
+	
+	if product, ok := product.(entities.Product); ok {
+		return &product, nil
+	}
+	return nil, errors.New("casting: can not casting product from storage")
 }
 
 func (adapter ProductStorageAdapter) List(ctx context.Context, filterOptions entities.CatalogFilterOptions) (*entities.Catalog, error) {
